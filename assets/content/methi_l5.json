@@ -1,0 +1,69 @@
+{
+  "plantId": "methi",
+  "level": 5,
+  "title": "Round 2 - Second Harvest",
+  "biome": "methi",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "methi_idle",
+      "lines": [
+        "Round Two sprouts are here!",
+        "Cut them, and we win!",
+        "Two harvests from one seed!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "Day 2-4 sprouts. Week 3-4 cut and harvest again!"
+    },
+    {
+      "type": "interaction",
+      "game": "mist",
+      "prompt": "Keep misting daily until harvest day."
+    },
+    {
+      "type": "interaction",
+      "game": "pick",
+      "prompt": "Week 3-4! Cut your second batch of greens."
+    },
+    {
+      "type": "interaction",
+      "game": "count",
+      "prompt": "Count your second harvest bunches!",
+      "count": 6
+    },
+    {
+      "type": "lesson",
+      "prompt": "ROUND 2 HARVEST! Stick your real badge in your book too!"
+    },
+    {
+      "type": "lesson",
+      "prompt": "Golden Rule: TWO ROUNDS, TWO HARVESTS, SAME SEED, BETTER GARDENER!"
+    },
+    {
+      "type": "quiz",
+      "q": "What makes you a BETTER GARDENER?",
+      "options": [
+        "One harvest",
+        "Two harvests, same seed",
+        "No harvest"
+      ],
+      "answer": 1
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/methi_l5.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Methi! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 100,
+      "seedCoins": 20
+    }
+  ]
+}

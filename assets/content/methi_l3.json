@@ -1,0 +1,70 @@
+{
+  "plantId": "methi",
+  "level": 3,
+  "title": "Round 1 - Grow & Cut",
+  "biome": "methi",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "methi_idle",
+      "lines": [
+        "Look, tiny green sprouts!",
+        "So fast, right?",
+        "Soon we cut and harvest!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "Day 2-4 sprouts. Day 5-10 dense green. Week 3-4 ready!"
+    },
+    {
+      "type": "interaction",
+      "game": "mist",
+      "prompt": "Mist every day to keep methi happy."
+    },
+    {
+      "type": "interaction",
+      "game": "pick",
+      "prompt": "Week 3-4! Cut greens with scissors into your basket."
+    },
+    {
+      "type": "interaction",
+      "game": "count",
+      "prompt": "Count the bunches you harvested!",
+      "count": 5
+    },
+    {
+      "type": "realTask",
+      "prompt": "Smell your hands! That strong, slightly bitter smell? That's real fenugreek. You grew it!",
+      "confirm": "photoOptional"
+    },
+    {
+      "type": "lesson",
+      "prompt": "ROUND 1 HARVEST! Stick your real badge in your book too!"
+    },
+    {
+      "type": "quiz",
+      "q": "When is Round 1 methi ready to cut?",
+      "options": [
+        "Day 1",
+        "Week 3-4",
+        "Never"
+      ],
+      "answer": 1
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/methi_l3.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Methi! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 100,
+      "seedCoins": 20
+    }
+  ]
+}

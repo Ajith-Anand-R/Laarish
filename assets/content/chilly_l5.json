@@ -1,0 +1,62 @@
+{
+  "plantId": "chilly",
+  "level": 5,
+  "title": "Harvest",
+  "biome": "chilly",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "chilly_idle",
+      "lines": [
+        "Weeks 8 to 10, white flowers bloom.",
+        "Then green chillies, then red.",
+        "Green or red, you choose!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "12 to 14 green chillies form. At 14+ they turn red. Snip never twist. Wash hands after. Never touch eyes!"
+    },
+    {
+      "type": "interaction",
+      "game": "pick",
+      "prompt": "Snip your ripe chillies, never twist them.",
+      "count": 3
+    },
+    {
+      "type": "interaction",
+      "game": "count",
+      "prompt": "Count how many chillies you picked!",
+      "count": 3
+    },
+    {
+      "type": "realTask",
+      "prompt": "Stick your FIRST HARVEST badge in your book too!",
+      "confirm": "photoOptional"
+    },
+    {
+      "type": "quiz",
+      "q": "After picking chillies, what must you do?",
+      "options": [
+        "Rub your eyes",
+        "Wash your hands",
+        "Twist the stems"
+      ],
+      "answer": 1
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/chilly_l5.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Chilly! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 100,
+      "seedCoins": 20
+    }
+  ]
+}

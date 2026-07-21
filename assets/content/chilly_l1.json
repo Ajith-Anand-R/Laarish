@@ -1,0 +1,51 @@
+{
+  "plantId": "chilly",
+  "level": 1,
+  "title": "Meet the Kit",
+  "biome": "chilly",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "chilly_idle",
+      "lines": [
+        "I'm Chilly! I take my time, but I reward you with lots of chillies!",
+        "Cool shades. Cooler head.",
+        "Patient. Powerful. Worth the wait!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "Meet my kit. Corky the cup holds soil. Diggy the ruler measures. Misty sprays water. Cuppy pours it later."
+    },
+    {
+      "type": "interaction",
+      "game": "match",
+      "prompt": "Match each tool to its job.",
+      "count": 4
+    },
+    {
+      "type": "quiz",
+      "q": "Which tool measures how deep to plant?",
+      "options": [
+        "Misty",
+        "Diggy",
+        "Corky"
+      ],
+      "answer": 1
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/chilly_l1.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Chilly! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 50,
+      "seedCoins": 10
+    }
+  ]
+}

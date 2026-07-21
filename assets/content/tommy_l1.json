@@ -1,0 +1,60 @@
+{
+  "plantId": "tommy",
+  "level": 1,
+  "title": "Meet the Kit",
+  "biome": "tommy",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "tommy_idle",
+      "lines": [
+        "I'm Tommy!",
+        "I am THE CLIMBER!",
+        "Extra roots when buried deep!",
+        "Patient. Powerful. Worth the wait!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "Meet your kit tools: my helpers!"
+    },
+    {
+      "type": "lesson",
+      "prompt": "Corky holds soil. Diggy measures deep."
+    },
+    {
+      "type": "lesson",
+      "prompt": "Misty sprays water. Cuppy pours water."
+    },
+    {
+      "type": "interaction",
+      "game": "match",
+      "prompt": "Match each tool to its job!",
+      "count": 4
+    },
+    {
+      "type": "quiz",
+      "q": "Which tool sprays water?",
+      "options": [
+        "Diggy",
+        "Misty",
+        "Corky"
+      ],
+      "answer": 1
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/tommy_l1.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Tommy! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 50,
+      "seedCoins": 10
+    }
+  ]
+}

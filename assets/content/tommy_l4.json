@@ -1,0 +1,74 @@
+{
+  "plantId": "tommy",
+  "level": 4,
+  "title": "Big Move",
+  "biome": "tommy",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "tommy_idle",
+      "lines": [
+        "I am ready to climb!",
+        "Bury me deep. I grow big!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "Check 4 signs: 2 leaf sets, thick stem."
+    },
+    {
+      "type": "lesson",
+      "prompt": "White roots and 80 to 100 mm tall."
+    },
+    {
+      "type": "lesson",
+      "prompt": "Snip lowest leaves first. Buried leaves rot."
+    },
+    {
+      "type": "lesson",
+      "prompt": "Bury 2/3 of the stem underground."
+    },
+    {
+      "type": "lesson",
+      "prompt": "It looks extreme. It is exactly right."
+    },
+    {
+      "type": "interaction",
+      "game": "pour",
+      "prompt": "Pour 400 ml with 4 Cuppys, in circles.",
+      "count": 4,
+      "target": {
+        "volumeMl": 400
+      }
+    },
+    {
+      "type": "realTask",
+      "prompt": "Move Tommy to the grow bag!",
+      "confirm": "photoOptional"
+    },
+    {
+      "type": "quiz",
+      "q": "How much of the stem do you bury?",
+      "options": [
+        "2/3 of the stem",
+        "Just the roots",
+        "None"
+      ],
+      "answer": 0
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/tommy_l4.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Tommy! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 80,
+      "seedCoins": 15
+    }
+  ]
+}

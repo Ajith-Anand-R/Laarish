@@ -1,0 +1,56 @@
+{
+  "plantId": "methi",
+  "level": 1,
+  "title": "Meet the Kit",
+  "biome": "methi",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "methi_idle",
+      "lines": [
+        "I'm Methi!",
+        "I give you TWO harvests!",
+        "Many plants, super fast!",
+        "Let's grow greens together!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "Meet your kit: Corky the cup, seeds, and Misty."
+    },
+    {
+      "type": "lesson",
+      "prompt": "My Golden Rule: two rounds, two harvests, same seed!"
+    },
+    {
+      "type": "interaction",
+      "game": "match",
+      "prompt": "Match each tool to its job!",
+      "count": 3
+    },
+    {
+      "type": "quiz",
+      "q": "How many harvests does Methi give?",
+      "options": [
+        "One",
+        "Two",
+        "Zero"
+      ],
+      "answer": 1
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/methi_l1.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Methi! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 50,
+      "seedCoins": 10
+    }
+  ]
+}

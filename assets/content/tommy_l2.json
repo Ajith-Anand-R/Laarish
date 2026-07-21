@@ -1,0 +1,82 @@
+{
+  "plantId": "tommy",
+  "level": 2,
+  "title": "Seeding Tommy",
+  "biome": "tommy",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "tommy_idle",
+      "lines": [
+        "Time to plant me!",
+        "Deep roots, more tomatoes!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "First soak Corky, then fill with mix."
+    },
+    {
+      "type": "interaction",
+      "game": "fill",
+      "prompt": "Fill Corky with nursery mix.",
+      "target": {
+        "leaveSpaceMm": 10
+      }
+    },
+    {
+      "type": "interaction",
+      "game": "poke",
+      "prompt": "Poke ONE hole, 6 mm deep with Diggy.",
+      "count": 1,
+      "target": {
+        "depthMm": 6
+      }
+    },
+    {
+      "type": "interaction",
+      "game": "drop",
+      "prompt": "Drop in 2 tomato seeds.",
+      "count": 2
+    },
+    {
+      "type": "interaction",
+      "game": "label",
+      "prompt": "Label the cup: TOMMY plus date."
+    },
+    {
+      "type": "interaction",
+      "game": "mist",
+      "prompt": "Mist gently with Misty."
+    },
+    {
+      "type": "realTask",
+      "prompt": "Do it with your Corky!",
+      "confirm": "photoOptional"
+    },
+    {
+      "type": "quiz",
+      "q": "How deep is the seed hole?",
+      "options": [
+        "6 mm",
+        "60 mm",
+        "1 mm"
+      ],
+      "answer": 0
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/tommy_l2.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Tommy! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 60,
+      "seedCoins": 12
+    }
+  ]
+}

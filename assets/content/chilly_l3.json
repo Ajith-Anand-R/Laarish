@@ -1,0 +1,61 @@
+{
+  "plantId": "chilly",
+  "level": 3,
+  "title": "Patience & Care",
+  "biome": "chilly",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "chilly_idle",
+      "lines": [
+        "I sprout in 10 to 14 days.",
+        "Slow sprouting? Totally normal!",
+        "Patient. Powerful. Worth the wait!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "Every day, mist me and keep me warm. Waiting is the real work. Stay cool and cheer."
+    },
+    {
+      "type": "interaction",
+      "game": "mist",
+      "prompt": "Give me a soft daily mist.",
+      "count": 15
+    },
+    {
+      "type": "realTask",
+      "prompt": "Just check and cheer. Waiting is the job!",
+      "confirm": "photoOptional"
+    },
+    {
+      "type": "quiz",
+      "q": "My sprouts are slow. What should you do?",
+      "options": [
+        "Dig them up",
+        "Stay calm and wait",
+        "Pour lots of water"
+      ],
+      "answer": 1
+    },
+    {
+      "type": "interaction",
+      "game": "snip",
+      "prompt": "Two sprouts? Snip the weaker one. Never pull! One cup = One plant."
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/chilly_l3.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Chilly! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 60,
+      "seedCoins": 12
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "plantId": "okki",
+  "level": 5,
+  "title": "Harvest",
+  "biome": "okki",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "okki_idle",
+      "lines": [
+        "Pods are here! Yippee!",
+        "More you pick, more it gives!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "Weeks 6 to 7, yellow pods appear!"
+    },
+    {
+      "type": "lesson",
+      "prompt": "Pick pods 7 to 10 cm long. Harvest often!"
+    },
+    {
+      "type": "interaction",
+      "game": "pick",
+      "prompt": "Snip never twist. Wash hands after. Never touch eyes!"
+    },
+    {
+      "type": "interaction",
+      "game": "count",
+      "prompt": "Count your fresh okra pods!",
+      "count": 7
+    },
+    {
+      "type": "realTask",
+      "prompt": "First harvest! Stick your FIRST HARVEST badge here!",
+      "confirm": "photoOptional"
+    },
+    {
+      "type": "quiz",
+      "q": "How do you pick a pod safely?",
+      "options": [
+        "Twist it off",
+        "Snip never twist",
+        "Pull hard"
+      ],
+      "answer": 1
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/okki_l5.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Okki! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 100,
+      "seedCoins": 20
+    }
+  ]
+}

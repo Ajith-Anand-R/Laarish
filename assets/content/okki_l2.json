@@ -1,0 +1,87 @@
+{
+  "plantId": "okki",
+  "level": 2,
+  "title": "Seeding Okki",
+  "biome": "okki",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "okki_idle",
+      "lines": [
+        "Soak me tonight! I'll wake up faster!",
+        "Soaked seeds sprout speedy fast!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "I'm special! Soak my seeds first!"
+    },
+    {
+      "type": "interaction",
+      "game": "soak",
+      "prompt": "Soak okra seeds overnight, 8 to 12 hours.",
+      "target": {
+        "hours": "8-12"
+      }
+    },
+    {
+      "type": "interaction",
+      "game": "fill",
+      "prompt": "Fill Corky with nursery mix. Leave 10 mm space."
+    },
+    {
+      "type": "interaction",
+      "game": "poke",
+      "prompt": "Poke a hole 12 mm deep with Diggy.",
+      "target": {
+        "depthMm": 12
+      }
+    },
+    {
+      "type": "interaction",
+      "game": "drop",
+      "prompt": "Drop in 2 okra seeds. Cover gently.",
+      "count": 2
+    },
+    {
+      "type": "interaction",
+      "game": "label",
+      "prompt": "Write OKKI and today's date."
+    },
+    {
+      "type": "interaction",
+      "game": "mist",
+      "prompt": "Mist 10 to 15 times!",
+      "count": 15
+    },
+    {
+      "type": "realTask",
+      "prompt": "Do it for real! Warm spot. Okki sulks in cold.",
+      "confirm": "photoOptional"
+    },
+    {
+      "type": "quiz",
+      "q": "How deep is Okki's hole?",
+      "options": [
+        "6 mm",
+        "12 mm",
+        "50 mm"
+      ],
+      "answer": 1
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/okki_l2.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Okki! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 60,
+      "seedCoins": 12
+    }
+  ]
+}

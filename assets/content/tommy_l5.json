@@ -1,0 +1,67 @@
+{
+  "plantId": "tommy",
+  "level": 5,
+  "title": "Harvest",
+  "biome": "tommy",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "tommy_idle",
+      "lines": [
+        "My tomatoes are red and ripe!",
+        "Worth the wait, hero!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "Weeks 10 to 12: red and ripe!"
+    },
+    {
+      "type": "lesson",
+      "prompt": "Pick when fully red. Sweet, juicy, perfect!"
+    },
+    {
+      "type": "interaction",
+      "game": "pick",
+      "prompt": "Pluck the red ripe tomatoes!"
+    },
+    {
+      "type": "interaction",
+      "game": "count",
+      "prompt": "Count your tomatoes!"
+    },
+    {
+      "type": "lesson",
+      "prompt": "You earned the FIRST HARVEST badge!"
+    },
+    {
+      "type": "realTask",
+      "prompt": "Pick your real red tomatoes!",
+      "confirm": "photoOptional"
+    },
+    {
+      "type": "quiz",
+      "q": "When do you pick a tomato?",
+      "options": [
+        "When green",
+        "When fully red",
+        "Never"
+      ],
+      "answer": 1
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/tommy_l5.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Tommy! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 100,
+      "seedCoins": 20
+    }
+  ]
+}

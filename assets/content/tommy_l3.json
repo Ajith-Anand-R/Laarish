@@ -1,0 +1,71 @@
+{
+  "plantId": "tommy",
+  "level": 3,
+  "title": "Watering & Care",
+  "biome": "tommy",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "tommy_idle",
+      "lines": [
+        "Care for me every day!",
+        "Just 5 minutes. I grow strong!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "Mist with Misty only. Never pour!"
+    },
+    {
+      "type": "lesson",
+      "prompt": "10 to 15 sprays from 10 cm high."
+    },
+    {
+      "type": "interaction",
+      "game": "mist",
+      "prompt": "Mist Tommy 10 to 15 sprays.",
+      "count": 12
+    },
+    {
+      "type": "lesson",
+      "prompt": "Two sprouts? Snip the weaker one."
+    },
+    {
+      "type": "interaction",
+      "game": "snip",
+      "prompt": "Snip weaker sprout at soil level.",
+      "target": {
+        "rule": "One cup = One plant."
+      }
+    },
+    {
+      "type": "quiz",
+      "q": "How do you thin sprouts?",
+      "options": [
+        "Pull it out",
+        "Snip at soil level",
+        "Leave both"
+      ],
+      "answer": 1
+    },
+    {
+      "type": "realTask",
+      "prompt": "Mist Tommy for 5 minutes today!",
+      "confirm": "photoOptional"
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/tommy_l3.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Tommy! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 60,
+      "seedCoins": 12
+    }
+  ]
+}

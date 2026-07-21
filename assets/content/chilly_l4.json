@@ -1,0 +1,59 @@
+{
+  "plantId": "chilly",
+  "level": 4,
+  "title": "Big Move",
+  "biome": "chilly",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "chilly_idle",
+      "lines": [
+        "Am I ready for the big bag?",
+        "Check my four graduation signs.",
+        "Patient. Powerful. Worth the wait!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "Four signs: two sets of long narrow pointed leaves; stem slim but upright; white threads in the cup; 80 to 100 mm tall. Upright beats thick. I may need an extra week. Be patient!"
+    },
+    {
+      "type": "realTask",
+      "prompt": "Move me at surface level, like Okki. No deep burial! Snap a photo.",
+      "confirm": "photoOptional"
+    },
+    {
+      "type": "interaction",
+      "game": "pour",
+      "prompt": "Pour 300 ml, that's 3 Cuppys, slowly in circles.",
+      "target": {
+        "ml": 300,
+        "cuppys": 3
+      }
+    },
+    {
+      "type": "quiz",
+      "q": "How much water after the big move?",
+      "options": [
+        "300 ml (3 Cuppys)",
+        "400 ml (4 Cuppys)",
+        "100 ml (1 Cuppy)"
+      ],
+      "answer": 0
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/chilly_l4.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Chilly! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 80,
+      "seedCoins": 15
+    }
+  ]
+}

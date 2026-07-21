@@ -1,0 +1,74 @@
+{
+  "plantId": "methi",
+  "level": 4,
+  "title": "Round 2 - Same Seed Again",
+  "biome": "methi",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "methi_idle",
+      "lines": [
+        "SAME SEED. SECOND HARVEST!",
+        "Now we use a grow bag!",
+        "More space, more greens!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "Same methi seeds grow again in a big grow bag!"
+    },
+    {
+      "type": "lesson",
+      "prompt": "First punch 4 to 6 holes in the bag bottom."
+    },
+    {
+      "type": "interaction",
+      "game": "fill",
+      "prompt": "Fill soil to 2 cm below the rim."
+    },
+    {
+      "type": "interaction",
+      "game": "scatter",
+      "prompt": "Scatter seeds, then cover with 5 mm soil."
+    },
+    {
+      "type": "interaction",
+      "game": "label",
+      "prompt": "Label the bag: METHI plus today's date."
+    },
+    {
+      "type": "interaction",
+      "game": "pour",
+      "prompt": "Water with 200 ml, just 2 Cuppys, in circles."
+    },
+    {
+      "type": "realTask",
+      "prompt": "Scatter your saved seeds in the grow bag now!",
+      "confirm": "photoOptional"
+    },
+    {
+      "type": "quiz",
+      "q": "How much water does the grow bag need?",
+      "options": [
+        "200 ml (2 Cuppys)",
+        "400 ml (4 Cuppys)",
+        "No water"
+      ],
+      "answer": 0
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/methi_l4.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Methi! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 60,
+      "seedCoins": 12
+    }
+  ]
+}

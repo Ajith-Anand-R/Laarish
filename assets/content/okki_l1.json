@@ -1,0 +1,55 @@
+{
+  "plantId": "okki",
+  "level": 1,
+  "title": "Meet the Kit",
+  "biome": "okki",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "okki_idle",
+      "lines": [
+        "I'm Okki!",
+        "I'm THE SPEEDSTER!",
+        "Soak me tonight! I'll wake up faster!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "Meet the kit! Corky the cup holds soil."
+    },
+    {
+      "type": "lesson",
+      "prompt": "Diggy measures. Misty sprays. Cuppy pours!"
+    },
+    {
+      "type": "interaction",
+      "game": "match",
+      "prompt": "Match each buddy to its job!",
+      "count": 4
+    },
+    {
+      "type": "quiz",
+      "q": "Who sprays water on Okki?",
+      "options": [
+        "Misty",
+        "Diggy",
+        "Corky"
+      ],
+      "answer": 0
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/okki_l1.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Okki! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 50,
+      "seedCoins": 10
+    }
+  ]
+}

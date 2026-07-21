@@ -1,0 +1,79 @@
+{
+  "plantId": "chilly",
+  "level": 2,
+  "title": "Seeding Chilly",
+  "biome": "chilly",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "chilly_idle",
+      "lines": [
+        "Time to plant me. Stay cool.",
+        "Warm window, please. Cold = no sprouting."
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "First fill Corky with nursery mix. Leave 10 mm space at the top."
+    },
+    {
+      "type": "interaction",
+      "game": "fill",
+      "prompt": "Fill Corky. Leave 10 mm space up top."
+    },
+    {
+      "type": "interaction",
+      "game": "poke",
+      "prompt": "Poke one hole, 6 mm deep, with Diggy.",
+      "target": {
+        "depthMm": 6
+      }
+    },
+    {
+      "type": "interaction",
+      "game": "drop",
+      "prompt": "Drop in 2 chilli seeds. Tiny, handle carefully!",
+      "count": 2
+    },
+    {
+      "type": "interaction",
+      "game": "label",
+      "prompt": "Label the cup: 'Chilly' plus today's date."
+    },
+    {
+      "type": "interaction",
+      "game": "mist",
+      "prompt": "Mist gently, 10 to 15 times.",
+      "count": 15
+    },
+    {
+      "type": "realTask",
+      "prompt": "Set me on a warm sunny window. Snap a photo!",
+      "confirm": "photoOptional"
+    },
+    {
+      "type": "quiz",
+      "q": "How deep do chilli seeds go?",
+      "options": [
+        "6 mm",
+        "12 mm",
+        "60 mm"
+      ],
+      "answer": 0
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/chilly_l2.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Chilly! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 60,
+      "seedCoins": 12
+    }
+  ]
+}

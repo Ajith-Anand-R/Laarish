@@ -1,0 +1,75 @@
+{
+  "plantId": "methi",
+  "level": 2,
+  "title": "Round 1 - Scatter Seeds",
+  "biome": "methi",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "methi_idle",
+      "lines": [
+        "Round One starts now!",
+        "We scatter seeds in Corky!",
+        "No holes needed. Just sprinkle!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "Methi is easy: scatter seeds, no poking holes!"
+    },
+    {
+      "type": "interaction",
+      "game": "fill",
+      "prompt": "Fill Corky with soft nursery mix."
+    },
+    {
+      "type": "interaction",
+      "game": "scatter",
+      "prompt": "Pinch seeds and scatter them all over. No hole!"
+    },
+    {
+      "type": "interaction",
+      "game": "scatter",
+      "prompt": "Cover seeds with just 5 mm of soil."
+    },
+    {
+      "type": "interaction",
+      "game": "label",
+      "prompt": "Label your cup: METHI plus today's date."
+    },
+    {
+      "type": "interaction",
+      "game": "mist",
+      "prompt": "Mist gently with Misty, 10 sprays."
+    },
+    {
+      "type": "realTask",
+      "prompt": "Scatter real methi seeds in your cup now!",
+      "confirm": "photoOptional"
+    },
+    {
+      "type": "quiz",
+      "q": "How do we plant methi seeds?",
+      "options": [
+        "Poke a deep hole",
+        "Scatter on top",
+        "Bury very deep"
+      ],
+      "answer": 1
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/methi_l2.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Methi! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 60,
+      "seedCoins": 12
+    }
+  ]
+}

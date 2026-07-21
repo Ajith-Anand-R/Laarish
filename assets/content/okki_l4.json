@@ -1,0 +1,63 @@
+{
+  "plantId": "okki",
+  "level": 4,
+  "title": "Big Move",
+  "biome": "okki",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "okki_idle",
+      "lines": [
+        "Time for the big move!",
+        "Fast growers need room to run!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "Check 4 signs: 2 sets of true leaves."
+    },
+    {
+      "type": "lesson",
+      "prompt": "Thick upright stem. White roots. 80 to 100 mm tall."
+    },
+    {
+      "type": "lesson",
+      "prompt": "Fill soil halfway. Place cup at surface level!"
+    },
+    {
+      "type": "realTask",
+      "prompt": "Move Okki. Fill soil to 10 mm below rim.",
+      "confirm": "photoOptional"
+    },
+    {
+      "type": "interaction",
+      "game": "pour",
+      "prompt": "Water 400 ml, 4 Cuppys, slowly in circles!",
+      "count": 4
+    },
+    {
+      "type": "quiz",
+      "q": "Where does Okki sit in the bag?",
+      "options": [
+        "Buried deep",
+        "Surface level",
+        "Upside down"
+      ],
+      "answer": 1
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/okki_l4.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Okki! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 80,
+      "seedCoins": 15
+    }
+  ]
+}

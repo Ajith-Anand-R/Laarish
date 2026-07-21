@@ -1,0 +1,64 @@
+{
+  "plantId": "okki",
+  "level": 3,
+  "title": "Watering & Care",
+  "biome": "okki",
+  "steps": [
+    {
+      "type": "mascotIntro",
+      "rive": "okki_idle",
+      "lines": [
+        "Every day! Just 5 minutes!",
+        "Keep me warm, never cold!"
+      ]
+    },
+    {
+      "type": "lesson",
+      "prompt": "Mist with Misty, 10 to 15 sprays from 10 cm."
+    },
+    {
+      "type": "interaction",
+      "game": "mist",
+      "prompt": "Spray 10 to 15 times from 10 cm high!",
+      "count": 15
+    },
+    {
+      "type": "lesson",
+      "prompt": "Two sprouts? Snip the weak one at soil level."
+    },
+    {
+      "type": "interaction",
+      "game": "snip",
+      "prompt": "Snip the weaker sprout. Never pull! One cup = One plant."
+    },
+    {
+      "type": "quiz",
+      "q": "Two sprouts in one cup. What do you do?",
+      "options": [
+        "Pull the weak one",
+        "Snip weak at soil level",
+        "Keep both"
+      ],
+      "answer": 1
+    },
+    {
+      "type": "realTask",
+      "prompt": "Mist Okki today. Keep the warm spot warm!",
+      "confirm": "photoOptional"
+    },
+    {
+      "type": "video",
+      "asset": "assets/video/okki_l3.mp4"
+    },
+    {
+      "type": "capture",
+      "prompt": "Show me your Okki! Take a progress photo."
+    },
+    {
+      "type": "reward",
+      "stars": true,
+      "sunPoints": 60,
+      "seedCoins": 12
+    }
+  ]
+}
