@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "186388879740",
+    "firebase_url": "https://battery-iot-67338-default-rtdb.firebaseio.com",
+    "project_id": "battery-iot-67338",
+    "storage_bucket": "battery-iot-67338.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:186388879740:android:5d8e5dc7232db4072f6cf9",
+        "android_client_info": {
+          "package_name": "com.laarish.laarishapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "186388879740-lrkvf4n90gpaqm1astl91kmgp4m2ld8j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDF_o5O-YsL_FnHynBTjDSwWsqDs2YPsZg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "186388879740-lrkvf4n90gpaqm1astl91kmgp4m2ld8j.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "186388879740-hb76cndbfb8sjm7lkdve1nflib3vaatj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.laarish.laarishapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

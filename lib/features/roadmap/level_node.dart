@@ -1,6 +1,10 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../core/audio/audio_service.dart';
+import '../../core/fx/fx.dart';
 import '../../core/motion/laarish_motion.dart';
 import '../../core/theme/laarish_colors.dart';
 import '../../core/theme/laarish_spacing.dart';
@@ -57,16 +61,44 @@ class _LevelNodeState extends State<LevelNode>
     super.dispose();
   }
 
-  void _down(_) =>
-      _press.animateTo(LaarishMotion.tapSquash,
-          duration: LaarishMotion.tapDown, curve: Curves.easeOut);
+  final _budKey = GlobalKey();
 
-  void _release() {
-    // Spring back to rest — LaarishMotion.pop naturally overshoots toward
-    // tapOvershoot then settles, so no manual keyframe sequence needed.
+  void _down(_) {
+    HapticFeedback.selectionClick();
+    _press.animateTo(LaarishMotion.tapSquash,
+        duration: LaarishMotion.tapDown, curve: Curves.easeOut);
+  }
+
+  void _release({bool activated = false}) {
+    // Spring back to rest with a positive kick so it overshoots past 1.0 the
+    // way a real released button does, then settles.
     _press.animateWith(
-      SpringSimulation(LaarishMotion.pop, _press.value, 1.0, 0),
+      SpringSimulation(
+        LaarishMotion.pop,
+        _press.value,
+        1.0,
+        activated ? 5.0 : 0,
+      ),
     );
+  }
+
+  void _tap() {
+    final locked = widget.data.state == NodeState.locked;
+    if (locked) {
+      // Denial reads as a physical bump, not a silent no-op.
+      HapticFeedback.heavyImpact();
+      AudioService.instance.play(Sfx.gateCreak);
+      ShakeScope.go(context, intensity: 4, haptic: HapticImpact.none);
+    } else {
+      AudioService.instance.play(Sfx.pop);
+      FxBurst.atWidget(
+        _budKey,
+        color: widget.data.biomeColor,
+        style: BurstStyle.sparkle,
+        intensity: 0.7,
+      );
+    }
+    widget.onTap?.call();
   }
 
   @override
@@ -75,35 +107,47 @@ class _LevelNodeState extends State<LevelNode>
     final tappable = data.state != NodeState.locked;
 
     Widget child = SizedBox(
+      key: _budKey,
       width: LaarishSpacing.minTapTarget,
       height: LaarishSpacing.minTapTarget,
       child: _NodeShape(data: data),
     );
 
-    if (tappable) {
-      child = AnimatedBuilder(
-        animation: _press,
-        builder: (context, c) {
-          final s = _press.value;
-          // Squash-and-stretch: as it presses down it widens, on the
-          // overshoot it stretches tall — volume-preserving feel.
-          return Transform(
-            alignment: Alignment.center,
-            transform: Matrix4.diagonal3Values(1.0 + (1.0 - s) * 0.5, s, 1.0),
-            child: c,
-          );
-        },
-        child: child,
-      );
-
-      child = GestureDetector(
-        onTap: widget.onTap,
-        onTapDown: _down,
-        onTapUp: (_) => _release(),
-        onTapCancel: _release,
+    // The one node to tap next wears a breathing halo so the eye finds it
+    // instantly on a busy map.
+    if (data.isCurrent) {
+      child = PulseGlow(
+        color: LaarishColors.sunflower,
+        radius: 20,
+        intensity: 0.65,
         child: child,
       );
     }
+
+    child = AnimatedBuilder(
+      animation: _press,
+      builder: (context, c) {
+        final s = _press.value;
+        // Squash-and-stretch: as it presses down it widens, on the
+        // overshoot it stretches tall — volume-preserving feel.
+        return Transform(
+          alignment: Alignment.center,
+          transform: Matrix4.diagonal3Values(1.0 + (1.0 - s) * 0.5, s, 1.0),
+          child: c,
+        );
+      },
+      child: child,
+    );
+
+    child = GestureDetector(
+      onTap: _tap,
+      // Locked nodes still react to the touch — they just bump instead of
+      // opening. A dead tap target reads as a broken app to a child.
+      onTapDown: _down,
+      onTapUp: (_) => _release(activated: tappable),
+      onTapCancel: _release,
+      child: child,
+    );
 
     // Idle wobble for unlocked-not-done nodes only — a bit of "alive" juice
     // without distracting from the one node the child should tap next.
@@ -166,15 +210,23 @@ class _NodeShape extends StatelessWidget {
           ),
         ),
         if (!locked)
-          Row(
-            mainAxisSize: MainAxisSize.min,
+          // Earned stars cascade in one after another — the chain reaction
+          // that makes a completed node feel *awarded*, not just drawn.
+          ChainReveal(
+            gap: const Duration(milliseconds: 110),
+            slide: 6,
             children: [
               for (var i = 0; i < 3; i++)
-                Icon(
-                  i < data.stars ? Icons.star_rounded : Icons.star_border_rounded,
-                  size: 12,
-                  color: LaarishColors.sunflowerDeep,
-                ),
+                i < data.stars
+                    ? const Icon(Icons.star_rounded,
+                        size: 13,
+                        color: LaarishColors.sunflower,
+                        shadows: [
+                          Shadow(color: LaarishColors.sunflowerDeep, blurRadius: 4),
+                        ])
+                    : Icon(Icons.star_rounded,
+                        size: 13,
+                        color: LaarishColors.soil.withValues(alpha: 0.28)),
             ],
           ),
       ],
@@ -202,49 +254,116 @@ class _BudPainter extends CustomPainter {
     final center = size.center(Offset.zero);
     final radius = size.shortestSide / 2 - 4;
 
-    // Soft ambient-occlusion / drop shadow beneath the bud so it reads as a
-    // sphere sitting on the path. Drawn BEFORE the fill, offset down, blurred.
-    canvas.drawCircle(
-      center + const Offset(0, 3),
-      radius,
+    // Contact shadow: an ellipse on the ground, not a circle behind the bud —
+    // that difference is what makes it sit *on* the path rather than float.
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: center + Offset(0, radius * 0.92),
+        width: radius * 1.7,
+        height: radius * 0.5,
+      ),
       Paint()
-        ..color = Colors.black.withValues(alpha: 0.18)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+        ..color = Colors.black.withValues(alpha: 0.22)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
     );
 
-    final gradient = RadialGradient(
-      center: const Alignment(-0.3, -0.3),
-      colors: [Color.lerp(fill, Colors.white, 0.35)!, fill],
-    );
     final rect = Rect.fromCircle(center: center, radius: radius);
-    canvas.drawCircle(center, radius, Paint()..shader = gradient.createShader(rect));
 
-    // Done buds get an extra glossy sheen highlight for a ripe-sunflower pop.
-    if (done) {
-      canvas.drawCircle(
-        center + Offset(-radius * 0.28, -radius * 0.32),
-        radius * 0.34,
-        Paint()..color = Colors.white.withValues(alpha: 0.45),
-      );
-    }
-
+    // Sphere shading: key light up-left, body colour, terminator toward the
+    // lower-right. Three stops is the minimum for a believable ball.
     canvas.drawCircle(
       center,
       radius,
       Paint()
-        ..color = locked ? LaarishColors.soil.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.7)
+        ..shader = RadialGradient(
+          center: const Alignment(-0.38, -0.42),
+          radius: 0.95,
+          colors: [
+            Color.lerp(fill, Colors.white, 0.55)!,
+            fill,
+            Color.lerp(fill, Colors.black, locked ? 0.10 : 0.32)!,
+          ],
+          stops: const [0.0, 0.52, 1.0],
+        ).createShader(rect),
+    );
+
+    // Rim light along the shaded edge — bounce from the world behind it.
+    canvas.drawArc(
+      rect.deflate(1.2),
+      -math.pi * 0.15,
+      math.pi * 0.9,
+      false,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.2
+        ..strokeCap = StrokeCap.round
+        ..color = Colors.white.withValues(alpha: locked ? 0.18 : 0.42),
+    );
+
+    // Specular hotspot — an ellipse, because a sphere's highlight is never
+    // a perfect circle at a glancing angle.
+    if (!locked) {
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: center + Offset(-radius * 0.30, -radius * 0.36),
+          width: radius * 0.62,
+          height: radius * 0.42,
+        ),
+        Paint()
+          ..color = Colors.white.withValues(alpha: done ? 0.65 : 0.42)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
+      );
+    }
+
+    // Outline.
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = locked
+            ? LaarishColors.soil.withValues(alpha: 0.25)
+            : Colors.white.withValues(alpha: 0.75)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.5,
     );
 
+    // Little leaf sprout on the crown — the "bud" of DESIGN_SYSTEM.md §6.
+    if (!locked) {
+      final tip = center + Offset(radius * 0.22, -radius * 1.16);
+      final leaf = Path()
+        ..moveTo(center.dx, center.dy - radius * 0.95)
+        ..quadraticBezierTo(
+          center.dx + radius * 0.55, center.dy - radius * 1.0, tip.dx, tip.dy)
+        ..quadraticBezierTo(center.dx + radius * 0.16,
+            center.dy - radius * 0.92, center.dx, center.dy - radius * 0.95)
+        ..close();
+      canvas.drawPath(
+        leaf,
+        Paint()
+          ..shader = LinearGradient(
+            colors: [LaarishColors.leaf, LaarishColors.leafDeep],
+          ).createShader(leaf.getBounds()),
+      );
+    }
+
     if (ringGlow) {
+      // Double ring: a bright inner hairline plus a blurred outer bloom.
       canvas.drawCircle(
         center,
-        radius + 4,
+        radius + 5,
         Paint()
-          ..color = LaarishColors.sunflower
+          ..color = LaarishColors.sunflower.withValues(alpha: 0.85)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 2,
+          ..strokeWidth = 2.4,
+      );
+      canvas.drawCircle(
+        center,
+        radius + 8,
+        Paint()
+          ..color = LaarishColors.sunflower.withValues(alpha: 0.45)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 5
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
       );
     }
   }

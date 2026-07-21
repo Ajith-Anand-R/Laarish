@@ -98,15 +98,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
     final allowed = await _passParentGate();
     if (!allowed || !mounted) return;
 
-    final account = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => const _GoogleAccountPickerSheet(),
-    );
-
-    if (account == null || !mounted) return;
-
     setState(() {
       _busy = true;
       _error = null;
@@ -117,9 +108,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
       if (!mounted) return;
       await _success.forward(from: 0);
       if (mounted) context.go('/qr');
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
-      setState(() => _error = "Couldn't sign in with Google. Try again!");
+      if (e.toString().contains('cancelled')) {
+        setState(() => _busy = false);
+        return;
+      }
+      setState(() => _error = "Couldn't sign in with Google. Please try again!");
       await _shake.forward(from: 0);
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -516,13 +511,20 @@ class _GoogleSignInButton extends StatelessWidget {
                 child: CustomPaint(painter: _GoogleGLogoPainter()),
               ),
               const SizedBox(width: 12),
-              Text(
-                'Continue with Google',
-                style: GoogleFonts.roboto(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: disabled ? const Color(0xFF9AA0A6) : const Color(0xFF3C4043),
-                  letterSpacing: 0.2,
+              // Flexible + ellipsis: the pill is width-constrained by its
+              // parent, and a wider font metric (or a longer localisation)
+              // would otherwise overflow it.
+              Flexible(
+                child: Text(
+                  'Continue with Google',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.roboto(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: disabled ? const Color(0xFF9AA0A6) : const Color(0xFF3C4043),
+                    letterSpacing: 0.2,
+                  ),
                 ),
               ),
             ],

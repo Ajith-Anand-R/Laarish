@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
+import '../../core/fx/fx.dart';
 import '../../core/theme/laarish_colors.dart';
 import '../../core/theme/laarish_spacing.dart';
 import '../../core/theme/laarish_text.dart';
@@ -73,10 +74,15 @@ class _RoadmapBodyState extends State<_RoadmapBody> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!_scrollController.hasClients) return;
         final viewport = _scrollController.position.viewportDimension;
-        final target = (positions[currentIndex].dy - viewport / 2)
-            .clamp(0.0, _scrollController.position.maxScrollExtent);
-        _scrollController.animateTo(target,
-            duration: const Duration(milliseconds: 700), curve: Curves.easeOutCubic);
+        final target = (positions[currentIndex].dy - viewport / 2).clamp(
+          0.0,
+          _scrollController.position.maxScrollExtent,
+        );
+        _scrollController.animateTo(
+          target,
+          duration: const Duration(milliseconds: 700),
+          curve: Curves.easeOutCubic,
+        );
       });
     }
 
@@ -110,79 +116,143 @@ class _RoadmapBodyState extends State<_RoadmapBody> {
             ),
           ),
         ),
-        CustomScrollView(
+        // Depth: three silhouette hill bands scrolling at different rates
+        // behind the path, so the world has real distance behind it. They
+        // read the same ScrollController the content uses, so they can never
+        // drift out of phase with the finger.
+        //
+        // The motion blur lives HERE, on the scenery — not on the scroll view.
+        // VelocityBlur adds/removes its filter by velocity, and doing that
+        // above a Scrollable re-inflates it, which double-attaches the
+        // controller. The scenery owns no controller, and a fling smearing
+        // the distant hills is where the effect reads anyway.
+        IgnorePointer(
+          child: VelocityBlur(
+            controller: _scrollController,
+            maxSigma: 6,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ScrollingBand(
+                  controller: _scrollController,
+                  color: Color.lerp(biome, Colors.white, 0.55)!.withValues(alpha: 0.30),
+                  factor: 0.06,
+                  height: 240,
+                  amplitude: 34,
+                  wavelength: 420,
+                ),
+                ScrollingBand(
+                  controller: _scrollController,
+                  color: Color.lerp(biome, Colors.black, 0.35)!.withValues(alpha: 0.30),
+                  factor: 0.13,
+                  height: 170,
+                  amplitude: 26,
+                  wavelength: 300,
+                  phase: 1.4,
+                ),
+                ScrollingBand(
+                  controller: _scrollController,
+                  color: Color.lerp(biome, Colors.black, 0.62)!.withValues(alpha: 0.35),
+                  factor: 0.22,
+                  height: 110,
+                  amplitude: 18,
+                  wavelength: 210,
+                  phase: 2.7,
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Airborne pollen drifting across the whole map.
+        RepaintBoundary(
+          child: ParticleField(
+            color: Color.lerp(LaarishColors.sunflower, Colors.white, 0.35)!,
+            style: ParticleStyle.pollen,
+            count: 26,
+            speed: 0.8,
+            opacity: 0.45,
+          ),
+        ),
+        // Dynamic camera wraps the *viewport*, not the scrolled content: a
+        // fling pulls the camera back and rolls it, then it eases home as the
+        // scroll settles. Safe around a Scrollable because ScrollCamera always
+        // emits its Transform (identity at rest) — constant widget structure,
+        // so the scroll view's element is never re-inflated.
+        ScrollCamera(
           controller: _scrollController,
-          physics: const _CandyScrollPhysics(),
-          slivers: [
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: totalHeight,
-                width: width,
-                child: Stack(
-                  children: [
-                    RepaintBoundary(
-                      child: CustomPaint(
-                        size: Size(width, totalHeight),
-                        painter: GardenPathPainter(
-                          points: positions,
-                          plantOrder: UnlockPolicy.plantOrder,
-                          completedThrough: doneCount,
+          child: CustomScrollView(
+            controller: _scrollController,
+            physics: const _CandyScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: totalHeight,
+                  width: width,
+                  child: Stack(
+                    children: [
+                      RepaintBoundary(
+                        child: CustomPaint(
+                          size: Size(width, totalHeight),
+                          painter: GardenPathPainter(
+                            points: positions,
+                            plantOrder: UnlockPolicy.plantOrder,
+                            completedThrough: doneCount,
+                          ),
                         ),
                       ),
-                    ),
-                    for (final node in nodes) ...[
-                      if (node.isCurrent)
-                        Positioned(
-                          left: node.position.dx - 56,
-                          top: node.position.dy - 56,
-                          child: RepaintBoundary(child: CurrentNodeGlow(color: node.biomeColor)),
-                        ),
-                      if (node.isCurrent)
-                        Positioned(
-                          left: node.position.dx - 48,
-                          top: node.position.dy - 108,
-                          child: RepaintBoundary(
-                            child: IgnorePointer(
-                              child: MascotView.plant(
-                                node.plantId,
-                                size: 96,
-                                energy: mascotEnergy(node.plantId),
+                      for (final node in nodes) ...[
+                        if (node.isCurrent)
+                          Positioned(
+                            left: node.position.dx - 56,
+                            top: node.position.dy - 56,
+                            child: RepaintBoundary(child: CurrentNodeGlow(color: node.biomeColor)),
+                          ),
+                        if (node.isCurrent)
+                          Positioned(
+                            left: node.position.dx - 48,
+                            top: node.position.dy - 108,
+                            child: RepaintBoundary(
+                              child: IgnorePointer(
+                                child: MascotView.plant(
+                                  node.plantId,
+                                  size: 96,
+                                  energy: mascotEnergy(node.plantId),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      Positioned(
-                        left: node.position.dx - LaarishSpacing.minTapTarget / 2,
-                        top: node.position.dy - LaarishSpacing.minTapTarget / 2,
-                        child: _RevealNode(
-                          controller: _scrollController,
-                          nodeY: node.position.dy,
-                          index: node.index,
-                          child: LevelNode(
-                            data: node,
-                            onTap: () => _openMission(node),
+                        Positioned(
+                          left: node.position.dx - LaarishSpacing.minTapTarget / 2,
+                          top: node.position.dy - LaarishSpacing.minTapTarget / 2,
+                          child: _RevealNode(
+                            controller: _scrollController,
+                            nodeY: node.position.dy,
+                            index: node.index,
+                            child: LevelNode(data: node, onTap: () => _openMission(node)),
                           ),
                         ),
-                      ),
+                      ],
+                      if (complete)
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          top: positions.last.dy + 110,
+                          child: Center(
+                            child: LaarishButton(
+                              label: 'Claim My Certificate!',
+                              color: LaarishColors.sunflowerDeep,
+                              hero: true,
+                              icon: Icons.workspace_premium_rounded,
+                              onTap: () => context.go('/certificate'),
+                            ),
+                          ),
+                        ),
                     ],
-                    if (complete)
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        top: positions.last.dy + 110,
-                        child: Center(
-                          child: LaarishButton(
-                            label: 'Claim My Certificate!',
-                            color: LaarishColors.sunflowerDeep,
-                            onTap: () => context.go('/certificate'),
-                          ),
-                        ),
-                      ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         const RepaintBoundary(child: CritterLayer()),
         // Floating glass HUD.
@@ -244,20 +314,22 @@ class _RoadmapBodyState extends State<_RoadmapBody> {
         final state = done
             ? NodeState.done
             : unlocked
-                ? NodeState.unlocked
-                : NodeState.locked;
+            ? NodeState.unlocked
+            : NodeState.locked;
         final isCurrent = !foundCurrent && unlocked && !done;
         if (isCurrent) foundCurrent = true;
-        nodes.add(LevelNodeData(
-          plantId: plantId,
-          level: level,
-          index: index,
-          state: state,
-          stars: (progress?.stars.length ?? 0) >= level ? progress!.stars[level - 1] : 0,
-          isCurrent: isCurrent,
-          position: positions[index],
-          biomeColor: biomeColor,
-        ));
+        nodes.add(
+          LevelNodeData(
+            plantId: plantId,
+            level: level,
+            index: index,
+            state: state,
+            stars: (progress?.stars.length ?? 0) >= level ? progress!.stars[level - 1] : 0,
+            isCurrent: isCurrent,
+            position: positions[index],
+            biomeColor: biomeColor,
+          ),
+        );
         index++;
       }
     }
@@ -281,11 +353,7 @@ class _CandyScrollPhysics extends BouncingScrollPhysics {
       _CandyScrollPhysics(parent: buildParent(ancestor));
 
   @override
-  SpringDescription get spring => const SpringDescription(
-        mass: 0.65,
-        stiffness: 110,
-        damping: 19,
-      );
+  SpringDescription get spring => const SpringDescription(mass: 0.65, stiffness: 110, damping: 19);
 }
 
 /// Frosted-glass container for floating UI over the living background.
@@ -330,95 +398,113 @@ class _MissionSheet extends StatelessWidget {
     final done = node.state == NodeState.done;
 
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(
-            LaarishSpacing.lg, LaarishSpacing.md, LaarishSpacing.lg, LaarishSpacing.xl),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [LaarishColors.paper, Color.lerp(LaarishColors.paper, biome, 0.12)!],
-          ),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-          boxShadow: [
-            BoxShadow(color: LaarishColors.soil.withValues(alpha: 0.3), blurRadius: 24, offset: const Offset(0, -6)),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 44,
-              height: 5,
-              decoration: BoxDecoration(
-                color: LaarishColors.soil.withValues(alpha: 0.25),
-                borderRadius: BorderRadius.circular(3),
-              ),
+          padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(
+              LaarishSpacing.lg,
+              LaarishSpacing.md,
+              LaarishSpacing.lg,
+              LaarishSpacing.xl,
             ),
-            const SizedBox(height: LaarishSpacing.md),
-            Row(
-              children: [
-                _LevelGem(level: node.level, color: biome),
-                const SizedBox(width: LaarishSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('$name · Level ${node.level}',
-                          style: LaarishText.display22.copyWith(color: LaarishColors.ink)),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          for (var i = 0; i < 3; i++)
-                            Icon(i < node.stars ? Icons.star_rounded : Icons.star_border_rounded,
-                                size: 20, color: LaarishColors.sunflowerDeep),
-                        ],
-                      ),
-                    ],
-                  ),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [LaarishColors.paper, Color.lerp(LaarishColors.paper, biome, 0.12)!],
+              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+              boxShadow: [
+                BoxShadow(
+                  color: LaarishColors.soil.withValues(alpha: 0.3),
+                  blurRadius: 24,
+                  offset: const Offset(0, -6),
                 ),
               ],
             ),
-            const SizedBox(height: LaarishSpacing.md),
-            Text(
-              done
-                  ? 'Replay the lesson video and earn stars again!'
-                  : 'Watch the lesson video and help your $name grow to the next stage.',
-              style: LaarishText.body16.copyWith(color: LaarishColors.soil),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: LaarishSpacing.md),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _RewardChip(icon: '☀️', label: '+20'),
-                const SizedBox(width: LaarishSpacing.sm),
-                _RewardChip(icon: '🌿', label: '+5'),
+                Container(
+                  width: 44,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: LaarishColors.soil.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+                const SizedBox(height: LaarishSpacing.md),
+                Row(
+                  children: [
+                    _LevelGem(level: node.level, color: biome),
+                    const SizedBox(width: LaarishSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '$name · Level ${node.level}',
+                            style: LaarishText.display22.copyWith(color: LaarishColors.ink),
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              for (var i = 0; i < 3; i++)
+                                Icon(
+                                  i < node.stars ? Icons.star_rounded : Icons.star_border_rounded,
+                                  size: 20,
+                                  color: LaarishColors.sunflowerDeep,
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: LaarishSpacing.md),
+                Text(
+                  done
+                      ? 'Replay the lesson video and earn stars again!'
+                      : 'Watch the lesson video and help your $name grow to the next stage.',
+                  style: LaarishText.body16.copyWith(color: LaarishColors.soil),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: LaarishSpacing.md),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _RewardChip(icon: '☀️', label: '+20'),
+                    const SizedBox(width: LaarishSpacing.sm),
+                    _RewardChip(icon: '🌿', label: '+5'),
+                  ],
+                ),
+                const SizedBox(height: LaarishSpacing.lg),
+                LaarishButton(
+                  label: done ? 'Replay Lesson' : 'Start Mission',
+                  color: biome,
+                  hero: true,
+                  expand: true,
+                  icon: done ? Icons.replay_rounded : Icons.play_arrow_rounded,
+                  onTap: () {
+                    final router = GoRouter.of(context);
+                    Navigator.of(context).pop();
+                    router.go('/level/${node.plantId}/${node.level}');
+                  },
+                ),
               ],
             ),
-            const SizedBox(height: LaarishSpacing.lg),
-            SizedBox(
-              width: double.infinity,
-              child: LaarishButton(
-                label: done ? 'Replay Lesson' : 'Start Mission',
-                color: biome,
-                onTap: () {
-                  final router = GoRouter.of(context);
-                  Navigator.of(context).pop();
-                  router.go('/level/${node.plantId}/${node.level}');
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    ).animate().slideY(begin: 1, end: 0, duration: 380.ms, curve: Curves.easeOutCubic).fadeIn(duration: 280.ms);
+          ),
+        )
+        .animate()
+        .slideY(begin: 1, end: 0, duration: 380.ms, curve: Curves.easeOutCubic)
+        .fadeIn(duration: 280.ms);
   }
 }
 
-/// A glossy 3D gem showing the level number, tinted to the biome.
+/// A glossy 3D gem showing the level number, tinted to the biome. Turns with
+/// the device (a real object catching the light), carries a specular hotspot
+/// and a coloured bounce-light shadow, and breathes so it never sits dead.
 class _LevelGem extends StatelessWidget {
   const _LevelGem({required this.level, required this.color});
   final int level;
@@ -426,28 +512,71 @@ class _LevelGem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 60,
-      height: 60,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          center: const Alignment(-0.3, -0.4),
-          colors: [Color.lerp(color, Colors.white, 0.45)!, color],
+    return Tilt3D(
+      maxTilt: 0.35,
+      deviceTiltAmount: 0.8,
+      sheen: false, // the hotspot below is the specular; two would double up
+      liftOnTouch: 1.1,
+      child: PulseGlow(
+        color: color,
+        radius: 14,
+        intensity: 0.45,
+        child: Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              center: const Alignment(-0.35, -0.45),
+              radius: 0.95,
+              colors: [
+                Color.lerp(color, Colors.white, 0.65)!,
+                color,
+                Color.lerp(color, Colors.black, 0.30)!,
+              ],
+              stops: const [0.0, 0.55, 1.0],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.55),
+                blurRadius: 18,
+                offset: const Offset(0, 7),
+              ),
+            ],
+            border: Border.all(color: Colors.white.withValues(alpha: 0.85), width: 2.5),
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Positioned(
+                left: 12,
+                top: 9,
+                child: Container(
+                  width: 17,
+                  height: 11,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    gradient: RadialGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: 0.9),
+                        Colors.white.withValues(alpha: 0.0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Text(
+                '$level',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 24,
+                  shadows: [Shadow(color: Colors.black38, blurRadius: 4)],
+                ),
+              ),
+            ],
+          ),
         ),
-        boxShadow: [
-          BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 14, offset: const Offset(0, 5)),
-        ],
-        border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 2.5),
-      ),
-      child: Center(
-        child: Text('$level',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-              fontSize: 24,
-              shadows: [Shadow(color: Colors.black26, blurRadius: 3)],
-            )),
       ),
     );
   }
@@ -466,14 +595,26 @@ class _RewardChip extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: LaarishColors.paperDeep),
-        boxShadow: [BoxShadow(color: LaarishColors.soil.withValues(alpha: 0.12), blurRadius: 6, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+            color: LaarishColors.soil.withValues(alpha: 0.12),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(icon, style: const TextStyle(fontSize: 16)),
           const SizedBox(width: 6),
-          Text(label, style: LaarishText.body16.copyWith(fontWeight: FontWeight.w800, color: LaarishColors.ink)),
+          Text(
+            label,
+            style: LaarishText.body16.copyWith(
+              fontWeight: FontWeight.w800,
+              color: LaarishColors.ink,
+            ),
+          ),
         ],
       ),
     );
@@ -514,7 +655,8 @@ class _RevealNode extends StatelessWidget {
         // `viewportDimension` are still null and reading them throws
         // (null-check) — which cascades into the red-screen element-tree
         // asserts. Require the dimensions to actually exist before reading.
-        final ready = controller.hasClients &&
+        final ready =
+            controller.hasClients &&
             controller.position.hasPixels &&
             controller.position.hasViewportDimension;
         final offset = ready ? controller.offset : 0.0;

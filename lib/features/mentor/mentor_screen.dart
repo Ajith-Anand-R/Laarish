@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/providers.dart';
 import '../../core/ai/mentor_service.dart';
+import '../../core/fx/fx.dart';
 import '../../core/theme/laarish_colors.dart';
 import '../../core/theme/laarish_spacing.dart';
 import '../../core/theme/laarish_text.dart';
@@ -41,7 +42,31 @@ class _MentorScreenState extends ConsumerState<MentorScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: LaarishColors.paper,
-      body: SafeArea(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // The Mentor is the app's AI presence — give it an ambient,
+          // faintly electric room rather than flat paper.
+          const RepaintBoundary(
+            child: AnimatedMeshGradient(
+              colors: [
+                LaarishColors.paper,
+                Color(0x3358A83C),
+                Color(0x2AFFC93C),
+                Color(0x2287CEEB),
+              ],
+            ),
+          ),
+          const RepaintBoundary(
+            child: ParticleField(
+              color: LaarishColors.leaf,
+              style: ParticleStyle.bokeh,
+              count: 12,
+              speed: 0.5,
+              opacity: 0.28,
+            ),
+          ),
+          SafeArea(
         child: Column(
           children: [
             _Header(
@@ -67,6 +92,8 @@ class _MentorScreenState extends ConsumerState<MentorScreen>
             const _DemoNote(),
           ],
         ),
+          ),
+        ],
       ),
     );
   }

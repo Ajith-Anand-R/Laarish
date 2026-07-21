@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/providers.dart';
+import '../../core/fx/fx.dart';
 import '../../core/theme/laarish_colors.dart';
 import '../../core/theme/laarish_spacing.dart';
 import '../../core/motion/micro_animations.dart';
@@ -42,12 +43,39 @@ class _GardenHomeScreenState extends ConsumerState<GardenHomeScreen> {
 
     return Scaffold(
       backgroundColor: LaarishColors.paper,
-      body: SafeArea(
-        child: save.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('$e')),
-          data: (game) => _buildBody(context, game, today),
-        ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // The garden is outdoors: a slow sunlit colour field with pollen
+          // drifting through it, behind everything. Both layers are throttled
+          // ambient motion, so this costs a fraction of a frame.
+          const RepaintBoundary(
+            child: AnimatedMeshGradient(
+              colors: [
+                LaarishColors.paper,
+                Color(0x33FFC93C),
+                Color(0x2258A83C),
+                Color(0x1A87CEEB),
+              ],
+            ),
+          ),
+          RepaintBoundary(
+            child: ParticleField(
+              color: LaarishColors.sunflower,
+              style: ParticleStyle.pollen,
+              count: 22,
+              speed: 0.7,
+              opacity: 0.4,
+            ),
+          ),
+          SafeArea(
+            child: save.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(child: Text('$e')),
+              data: (game) => _buildBody(context, game, today),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -71,6 +99,11 @@ class _GardenHomeScreenState extends ConsumerState<GardenHomeScreen> {
     final effectiveCompleted = alreadyDoneToday ? allMissionIds.toSet() : _completedToday;
 
     return ListView(
+      // Inertial rubber-band scrolling everywhere, not just on iOS — the
+      // "buttery" feel is a product decision, not a platform one.
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
       padding: const EdgeInsets.all(LaarishSpacing.lg),
       children: [
         // Living leaf-shimmer banner (leaf_shimmer.frag) with blinking eyes.
@@ -88,20 +121,43 @@ class _GardenHomeScreenState extends ConsumerState<GardenHomeScreen> {
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: LaarishSpacing.lg),
+                  // Both halves are Flexible and the title ellipsises: the
+                  // title + three HUD chips do not fit side by side on a
+                  // narrow phone, and a fixed Row overflows there.
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Text('My Garden', style: LaarishText.display28.copyWith(color: Colors.white)),
-                          const SizedBox(width: LaarishSpacing.sm),
-                          const BlinkingEyes(size: 20),
-                        ],
+                      Flexible(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'My Garden',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: LaarishText.display28
+                                    .copyWith(color: Colors.white),
+                              ),
+                            ),
+                            const SizedBox(width: LaarishSpacing.sm),
+                            const BlinkingEyes(size: 20),
+                          ],
+                        ),
                       ),
-                      HudBar(
-                        sunPoints: game.wallet.sunPoints,
-                        seedCoins: game.wallet.seedCoins,
-                        streak: game.streak.current,
+                      const SizedBox(width: LaarishSpacing.sm),
+                      Flexible(
+                        // Scales the chips down rather than clipping them if
+                        // the numbers grow long.
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: HudBar(
+                            sunPoints: game.wallet.sunPoints,
+                            seedCoins: game.wallet.seedCoins,
+                            streak: game.streak.current,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -135,16 +191,25 @@ class _GardenHomeScreenState extends ConsumerState<GardenHomeScreen> {
                 child: Text('All done for today! Come back tomorrow 🌞', style: LaarishText.body18),
               ),
             ),
-          for (final plant in activePlants)
-            PlantCard(
-              plant: plant,
-              missions: missionsByPlant[plant.plantId] ?? const [],
-              completedIds: effectiveCompleted,
-              today: today,
-              onToggle: alreadyDoneToday
-                  ? (_) {}
-                  : (id) => _onToggle(id, allMissionIds, today),
-            ),
+          // Plant cards cascade in on first paint.
+          ChainReveal(
+            axis: Axis.vertical,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            gap: const Duration(milliseconds: 120),
+            slide: 26,
+            children: [
+              for (final plant in activePlants)
+                PlantCard(
+                  plant: plant,
+                  missions: missionsByPlant[plant.plantId] ?? const [],
+                  completedIds: effectiveCompleted,
+                  today: today,
+                  onToggle: alreadyDoneToday
+                      ? (_) {}
+                      : (id) => _onToggle(id, allMissionIds, today),
+                ),
+            ],
+          ),
         ],
       ],
     );
@@ -229,26 +294,55 @@ class _NotificationToggle extends StatelessWidget {
           Expanded(
             child: Text('Daily reminder (1/day, opt-in)', style: LaarishText.body16),
           ),
-          GestureDetector(
+          MagneticTap(
             onTap: () => onChanged(!value),
+            magnetStrength: 3,
+            ripple: false,
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 52,
-              height: 30,
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutCubic,
+              width: 54,
+              height: 32,
               padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
-                color: value ? LaarishColors.leaf : LaarishColors.paperDeep,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: value
+                      ? [
+                          Color.lerp(LaarishColors.leaf, Colors.white, 0.3)!,
+                          LaarishColors.leafDeep,
+                        ]
+                      : [
+                          LaarishColors.paperDeep,
+                          Color.lerp(LaarishColors.paperDeep, LaarishColors.soil, 0.15)!,
+                        ],
+                ),
                 borderRadius: BorderRadius.circular(999),
                 border: Border.all(color: LaarishColors.soil.withValues(alpha: 0.2)),
+                boxShadow: value
+                    ? [
+                        BoxShadow(
+                          color: LaarishColors.leaf.withValues(alpha: 0.55),
+                          blurRadius: 12,
+                        ),
+                      ]
+                    : null,
               ),
+              // The knob overshoots slightly as it slides — a switch with
+              // mass, not a linear slide.
               child: AnimatedAlign(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOut,
+                duration: const Duration(milliseconds: 340),
+                curve: Curves.easeOutBack,
                 alignment: value ? Alignment.centerRight : Alignment.centerLeft,
                 child: Container(
-                  width: 22,
-                  height: 22,
-                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: DepthShadow.shadows(LaarishColors.soil, 0.5),
+                  ),
                 ),
               ),
             ),

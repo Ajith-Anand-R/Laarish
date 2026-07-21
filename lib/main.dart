@@ -1,35 +1,50 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app/app.dart';
 import 'app/providers.dart';
 
+import 'firebase_options.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Cap the display to a ~60Hz mode. Deliberately NOT chasing 120Hz: the rich
-  // parallax/shader/3D-reveal visuals are far easier to land jank-free with a
-  // full 16ms frame budget than an 8ms one. On a 120Hz panel we pick the
-  // highest-resolution ≤60Hz mode; if none exists we leave the default.
-  // Fail-softs on desktop/web/iOS. See DESIGN_SYSTEM.md §5 perf convention.
+  // Run the panel as fast as it will go — 120Hz where the device offers it.
   try {
     final modes = await FlutterDisplayMode.supported;
-    final sixty = modes.where((m) => m.refreshRate >= 55 && m.refreshRate <= 61).toList()
-      ..sort((a, b) => (b.width * b.height).compareTo(a.width * a.height));
-    if (sixty.isNotEmpty) {
-      await FlutterDisplayMode.setPreferredMode(sixty.first);
+    if (modes.isNotEmpty) {
+      final best = modes.toList()
+        ..sort((a, b) {
+          final byRate = b.refreshRate.compareTo(a.refreshRate);
+          return byRate != 0
+              ? byRate
+              : (b.width * b.height).compareTo(a.width * a.height);
+        });
+      await FlutterDisplayMode.setPreferredMode(best.first);
     }
-  } catch (_) {/* no controllable display modes; keep the device default */}
+  } catch (_) {}
 
-  // No firebase_options.dart yet — run `flutterfire configure` (needs your
-  // own Firebase account login in a browser; AGENT.md §2/§3). Until then the
-  // app runs fully offline on StubAuthRepository so it stays playable.
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+    ),
+  );
+  await SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.edgeToEdge,
+  );
+
   var firebaseReady = false;
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     firebaseReady = true;
-  } catch (_) {
+  } catch (e) {
+    debugPrint('Firebase init error: $e');
     firebaseReady = false;
   }
 

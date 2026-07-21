@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import '../core/ai/mentor_service.dart';
 import '../core/audio/audio_service.dart';
 import '../content/content_repository.dart';
@@ -27,6 +28,20 @@ final contentRepositoryProvider = Provider<ContentRepository>((ref) {
 /// AI garden mentor — on-device today, swappable for a cloud model later
 /// (see MentorService). Gives photo/level feedback and daily tips.
 final mentorServiceProvider = Provider<MentorService>((ref) => LocalMentorService());
+
+/// Grabs a plant photo from the camera for the level checkpoint. Returns the
+/// file path, or null if the child backs out. Behind a provider so tests can
+/// override it (image_picker needs a real platform camera).
+final photoPickerProvider = Provider<Future<String?> Function()>((ref) {
+  return () async {
+    final shot = await ImagePicker().pickImage(
+      source: ImageSource.camera,
+      imageQuality: 70,
+      maxWidth: 1280,
+    );
+    return shot?.path;
+  };
+});
 
 final authStateProvider = StreamProvider<bool>((ref) {
   return ref.watch(authRepositoryProvider).authStateChanges();

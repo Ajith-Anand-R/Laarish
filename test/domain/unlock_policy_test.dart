@@ -3,40 +3,36 @@ import 'package:laarish/data/local/entities.dart';
 import 'package:laarish/domain/unlock_policy.dart';
 
 void main() {
-  test('tommy is unlocked from the start; others gated on previous plant', () {
+  test('every plant is always open (any order, even before kit / after done)', () {
     final plants = {
-      'tommy': PlantProgress(plantId: 'tommy'),
+      'tommy': PlantProgress(plantId: 'tommy')..levelsDone = 5, // finished
       'okki': PlantProgress(plantId: 'okki'),
       'chilly': PlantProgress(plantId: 'chilly'),
       'methi': PlantProgress(plantId: 'methi'),
     };
-    expect(UnlockPolicy.plantUnlocked('tommy', plants, professionStarted: true), isTrue);
-    expect(UnlockPolicy.plantUnlocked('tommy', plants, professionStarted: false), isFalse);
-    expect(UnlockPolicy.plantUnlocked('okki', plants, professionStarted: true), isFalse);
-
-    plants['tommy']!.levelsDone = 5;
-    expect(UnlockPolicy.plantUnlocked('okki', plants, professionStarted: true), isTrue);
-    expect(UnlockPolicy.plantUnlocked('chilly', plants, professionStarted: true), isFalse);
+    for (final id in UnlockPolicy.plantOrder) {
+      expect(UnlockPolicy.plantUnlocked(id, plants), isTrue);
+    }
   });
 
-  test('level N needs level N-1 done; level 1 needs the plant unlocked', () {
+  test('inside a plant, level N needs level N-1 done; level 1 is always open', () {
     final plants = {
       'tommy': PlantProgress(plantId: 'tommy')..levelsDone = 2,
-      'okki': PlantProgress(plantId: 'okki'),
+      'okki': PlantProgress(plantId: 'okki'), // untouched
     };
-    expect(UnlockPolicy.levelUnlocked('tommy', 1, plants, professionStarted: true), isTrue);
-    expect(UnlockPolicy.levelUnlocked('tommy', 3, plants, professionStarted: true), isTrue);
-    expect(UnlockPolicy.levelUnlocked('tommy', 4, plants, professionStarted: true), isFalse);
-    expect(UnlockPolicy.levelUnlocked('okki', 1, plants, professionStarted: true), isFalse); // tommy not done
-    expect(UnlockPolicy.levelUnlocked('tommy', 1, plants, professionStarted: false), isFalse);
+    expect(UnlockPolicy.levelUnlocked('tommy', 1, plants), isTrue);
+    expect(UnlockPolicy.levelUnlocked('tommy', 3, plants), isTrue); // replay/next: 2 done
+    expect(UnlockPolicy.levelUnlocked('tommy', 4, plants), isFalse);
+    // Okki level 1 open even though tommy isn't done — plants are independent.
+    expect(UnlockPolicy.levelUnlocked('okki', 1, plants), isTrue);
+    expect(UnlockPolicy.levelUnlocked('okki', 2, plants), isFalse);
   });
 
-  test('nextLevel: within a plant, across plants, and end of journey', () {
+  test('nextLevel: within a plant, then null when the plant is finished', () {
     expect(UnlockPolicy.nextLevel('tommy', 1), ('tommy', 2));
     expect(UnlockPolicy.nextLevel('tommy', 4), ('tommy', 5));
-    expect(UnlockPolicy.nextLevel('tommy', 5), ('okki', 1)); // roll to next plant
-    expect(UnlockPolicy.nextLevel('chilly', 5), ('methi', 1));
-    expect(UnlockPolicy.nextLevel('methi', 5), isNull); // journey complete
+    expect(UnlockPolicy.nextLevel('tommy', 5), isNull); // plant done, back to map
+    expect(UnlockPolicy.nextLevel('methi', 5), isNull);
   });
 
   test('profession completes only when all four plants hit level 5', () {

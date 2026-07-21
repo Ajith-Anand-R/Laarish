@@ -24,7 +24,7 @@ void main() {
     await visit('/map');
     await visit('/garden');
     await visit('/mentor');
-    await visit('/badges');
+    await visit('/progress');
     await visit('/settings');
     await visit('/map');
   });

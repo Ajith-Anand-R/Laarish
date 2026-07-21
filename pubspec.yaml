@@ -99,3 +99,4 @@ flutter:
     - shaders/particles.frag
     - shaders/leaf_shimmer.frag
     - shaders/roadmap_bg.frag
+    - shaders/level_bg.frag

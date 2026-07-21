@@ -8,6 +8,7 @@ import '../../core/theme/laarish_spacing.dart';
 import '../../core/theme/laarish_text.dart';
 import '../../core/widgets/laarish_button.dart';
 import '../../core/widgets/sticker_card.dart';
+import '../../data/local/entities.dart';
 import '../garden_home/notification_service.dart';
 
 /// S13 — parent-facing settings on a themed guidebook card. Sound and the
@@ -33,14 +34,20 @@ class SettingsScreen extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('Settings', style: LaarishText.display28, textAlign: TextAlign.center),
+                  Text('Me', style: LaarishText.display28, textAlign: TextAlign.center),
+                  const SizedBox(height: LaarishSpacing.lg),
+                  if (game != null) ...[
+                    _AccountCard(game: game),
+                    const SizedBox(height: LaarishSpacing.xl),
+                  ],
+                  Text('Settings', style: LaarishText.display22, textAlign: TextAlign.center),
                   const SizedBox(height: LaarishSpacing.sm),
                   Text(
                     'Parent gate protects this page',
                     style: LaarishText.body16.copyWith(color: LaarishColors.soil),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: LaarishSpacing.xl),
+                  const SizedBox(height: LaarishSpacing.lg),
                   if (settings == null)
                     const Padding(
                       padding: EdgeInsets.all(LaarishSpacing.lg),
@@ -91,6 +98,90 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Account details for the child's profile — buddy avatar, name, chosen guide,
+/// join date and their point/coin wallet.
+class _AccountCard extends StatelessWidget {
+  const _AccountCard({required this.game});
+  final GameSave game;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = game.profile;
+    final joined = '${p.createdAt.day}/${p.createdAt.month}/${p.createdAt.year}';
+    final buddyName = p.buddy == 'ayra' ? 'Ayra' : 'Rishi';
+    return Container(
+      padding: const EdgeInsets.all(LaarishSpacing.lg),
+      decoration: BoxDecoration(
+        color: LaarishColors.paperDeep,
+        borderRadius: BorderRadius.circular(LaarishSpacing.cardRadius),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 34,
+                backgroundColor: Colors.white,
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/images/${p.buddy}_character.png',
+                    width: 64,
+                    height: 64,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) =>
+                        const Icon(Icons.person_rounded, size: 40, color: LaarishColors.soil),
+                  ),
+                ),
+              ),
+              const SizedBox(width: LaarishSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(p.name.isEmpty ? 'Young Agriculturist' : p.name,
+                        style: LaarishText.display22),
+                    Text('Buddy: $buddyName', style: LaarishText.body16.copyWith(color: LaarishColors.soil)),
+                    Text('Joined $joined',
+                        style: LaarishText.body16.copyWith(color: LaarishColors.soil)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: LaarishSpacing.md),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _WalletChip(icon: Icons.wb_sunny_rounded, value: game.wallet.sunPoints, color: LaarishColors.sunflowerDeep),
+              _WalletChip(icon: Icons.eco_rounded, value: game.wallet.seedCoins, color: LaarishColors.leaf),
+              _WalletChip(icon: Icons.local_fire_department_rounded, value: game.streak.current, color: LaarishColors.tomato),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WalletChip extends StatelessWidget {
+  const _WalletChip({required this.icon, required this.value, required this.color});
+  final IconData icon;
+  final int value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: color, size: 22),
+        const SizedBox(width: LaarishSpacing.xs),
+        Text('$value', style: LaarishText.body18.copyWith(fontWeight: FontWeight.w800)),
+      ],
     );
   }
 }

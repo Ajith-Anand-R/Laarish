@@ -3,8 +3,17 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../repositories.dart';
 
 class FirebaseAuthRepository implements AuthRepository {
-  final _auth = FirebaseAuth.instance;
-  final _google = GoogleSignIn();
+  final FirebaseAuth _auth;
+  final GoogleSignIn _google;
+
+  FirebaseAuthRepository({
+    FirebaseAuth? auth,
+    GoogleSignIn? google,
+  })  : _auth = auth ?? FirebaseAuth.instance,
+        _google = google ??
+            GoogleSignIn(
+              serverClientId: '186388879740-lrkvf4n90gpaqm1astl91kmgp4m2ld8j.apps.googleusercontent.com',
+            );
 
   @override
   Stream<bool> authStateChanges() => _auth.authStateChanges().map((u) => u != null);
@@ -14,11 +23,21 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<void> signInWithEmail(String email, String password) async {
+    if (email.isEmpty || password.isEmpty) {
+      throw FirebaseAuthException(
+        code: 'invalid-email',
+        message: 'Please enter both email and password.',
+      );
+    }
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
+        try {
+          await _auth.createUserWithEmailAndPassword(email: email, password: password);
+        } catch (_) {
+          rethrow;
+        }
       } else {
         rethrow;
       }
@@ -28,7 +47,9 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   Future<void> signInWithGoogle() async {
     final account = await _google.signIn();
-    if (account == null) return; // user cancelled
+    if (account == null) {
+      throw Exception('Sign in cancelled');
+    }
     final auth = await account.authentication;
     final credential = GoogleAuthProvider.credential(
       accessToken: auth.accessToken,

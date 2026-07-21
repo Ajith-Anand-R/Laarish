@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
+import '../../core/fx/fx.dart';
 import '../../core/theme/laarish_colors.dart';
 import '../../core/theme/laarish_spacing.dart';
 import '../../core/theme/laarish_text.dart';
@@ -44,7 +45,31 @@ class BadgeBookScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: LaarishColors.paper,
-      body: SafeArea(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // A trophy room deserves light: a warm shifting field with gold
+          // sparkles rising through it.
+          const RepaintBoundary(
+            child: AnimatedMeshGradient(
+              colors: [
+                LaarishColors.paper,
+                Color(0x3AFFC93C),
+                Color(0x22F5A623),
+                Color(0x1A58A83C),
+              ],
+            ),
+          ),
+          const RepaintBoundary(
+            child: ParticleField(
+              color: LaarishColors.sunflower,
+              style: ParticleStyle.sparkle,
+              count: 20,
+              speed: 0.9,
+              opacity: 0.5,
+            ),
+          ),
+          SafeArea(
         child: save.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text('$e')),
@@ -85,6 +110,7 @@ class BadgeBookScreen extends ConsumerWidget {
                   LaarishButton(
                     label: 'Back to Garden',
                     color: LaarishColors.sunflowerDeep,
+                    icon: Icons.local_florist_rounded,
                     onTap: () => context.go('/garden'),
                   ),
                 ],
@@ -92,6 +118,8 @@ class BadgeBookScreen extends ConsumerWidget {
             );
           },
         ),
+          ),
+        ],
       ),
     );
   }

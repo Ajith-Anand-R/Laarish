@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/audio/audio_service.dart';
+import '../../core/fx/fx.dart';
 import '../../core/theme/laarish_colors.dart';
 
 /// Persistent hub navigation — the "Growing Vine Dock".
@@ -20,7 +22,7 @@ class VineShell extends StatelessWidget {
   final Widget child;
 
   /// Tab index order — must match the ShellRoute child order.
-  static const routes = ['/map', '/garden', '/mentor', '/badges', '/settings'];
+  static const routes = ['/map', '/garden', '/mentor', '/progress', '/settings'];
 
   int get _index {
     final i = routes.indexWhere((r) => location.startsWith(r));
@@ -54,7 +56,7 @@ class VineNavBar extends StatelessWidget {
     (icon: Icons.map_rounded, label: 'Map'),
     (icon: Icons.local_florist_rounded, label: 'Garden'),
     (icon: Icons.auto_awesome_rounded, label: 'Mentor'), // center — drawn as orb
-    (icon: Icons.workspace_premium_rounded, label: 'Badges'),
+    (icon: Icons.insights_rounded, label: 'Progress'),
     (icon: Icons.person_rounded, label: 'Me'),
   ];
 
@@ -73,24 +75,36 @@ class VineNavBar extends StatelessWidget {
             left: 0,
             right: 0,
             bottom: 0,
-            child: Container(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              child: ShimmerSweep(
+                strength: 0.16,
+                period: const Duration(seconds: 7),
+                child: Container(
               height: dockH + inset,
               padding: EdgeInsets.only(bottom: inset),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                // Three stops so the dock reads as a curved lit surface, not
+                // a flat green slab.
+                gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [LaarishColors.leaf, LaarishColors.leafDeep],
+                  colors: [
+                    Color.lerp(LaarishColors.leaf, Colors.white, 0.22)!,
+                    LaarishColors.leaf,
+                    LaarishColors.leafDeep,
+                  ],
+                  stops: const [0.0, 0.35, 1.0],
                 ),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
                 border: Border(
-                  top: BorderSide(color: Colors.white.withValues(alpha: 0.28), width: 1.5),
+                  top: BorderSide(color: Colors.white.withValues(alpha: 0.42), width: 1.8),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: LaarishColors.leafDeep.withValues(alpha: 0.45),
-                    blurRadius: 18,
-                    offset: const Offset(0, -3),
+                    color: LaarishColors.leafDeep.withValues(alpha: 0.55),
+                    blurRadius: 24,
+                    offset: const Offset(0, -4),
                   ),
                 ],
               ),
@@ -108,6 +122,8 @@ class VineNavBar extends StatelessWidget {
                         onTap: () => onTap(i),
                       ),
                 ],
+              ),
+                ),
               ),
             ),
           ),
@@ -173,9 +189,16 @@ class _TabItemState extends State<_TabItem> with SingleTickerProviderStateMixin 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
+      child: MagneticTap(
+        onTap: () {
+          AudioService.instance.play(Sfx.pop);
+          widget.onTap();
+        },
+        spark: true,
+        sparkColor: LaarishColors.sunflower,
+        sfx: null, // the tab plays its own pop above
+        magnetStrength: 4,
+        rippleColor: Colors.white.withValues(alpha: 0.4),
         child: AnimatedBuilder(
           animation: _c,
           builder: (context, _) {
@@ -256,8 +279,13 @@ class _MentorOrb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final orb = GestureDetector(
+    final orb = MagneticTap(
       onTap: onTap,
+      spark: true,
+      sparkColor: LaarishColors.sunflower,
+      sfx: Sfx.sparkle,
+      magnetStrength: 5,
+      borderRadius: BorderRadius.circular(999),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

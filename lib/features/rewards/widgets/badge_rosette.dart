@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../../../core/fx/fx.dart';
 import '../../../core/motion/micro_animations.dart';
 import '../../../core/theme/laarish_colors.dart';
 import '../../../core/theme/laarish_text.dart';
@@ -72,7 +73,23 @@ class BadgeRosette extends StatelessWidget {
     );
 
     if (earned) {
-      art = Breathing(amount: 0.02, child: art);
+      // An earned badge is a metal medal: it catches the light as the phone
+      // moves, wears a gold sheen sweep, glows, and breathes.
+      art = Tilt3D(
+        maxTilt: 0.30,
+        deviceTiltAmount: 0.9,
+        sheen: false,
+        child: PulseGlow(
+          color: LaarishColors.sunflower,
+          radius: 14,
+          intensity: 0.4,
+          child: ShimmerSweep(
+            strength: 0.55,
+            period: const Duration(milliseconds: 4200),
+            child: Breathing(amount: 0.02, child: art),
+          ),
+        ),
+      );
     } else {
       art = Opacity(
         opacity: 0.4,

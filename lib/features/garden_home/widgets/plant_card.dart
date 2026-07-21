@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../core/audio/audio_service.dart';
+import '../../../core/fx/fx.dart';
 import '../../../core/motion/laarish_motion.dart';
 import '../../../core/theme/laarish_colors.dart';
 import '../../../core/theme/laarish_spacing.dart';
@@ -70,6 +71,10 @@ class PlantCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: LaarishSpacing.lg),
       child: StickerCard(
+        elevation: 1.4,
+        // A plant with work left glows quietly — the card itself asks for
+        // attention instead of relying on the child reading every row.
+        glow: missions.any((m) => !completedIds.contains(m.id)) ? biome : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -102,12 +107,22 @@ class PlantCard extends StatelessWidget {
             ],
             if (missions.isNotEmpty) ...[
               const SizedBox(height: LaarishSpacing.md),
-              for (final mission in missions)
-                _MissionTile(
-                  mission: mission,
-                  done: completedIds.contains(mission.id),
-                  onTap: () => onToggle(mission.id),
-                ),
+              // Today's jobs cascade in rather than appearing as a wall.
+              ChainReveal(
+                axis: Axis.vertical,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                gap: const Duration(milliseconds: 70),
+                slide: 12,
+                children: [
+                  for (final mission in missions)
+                    _MissionTile(
+                      mission: mission,
+                      done: completedIds.contains(mission.id),
+                      color: biome,
+                      onTap: () => onToggle(mission.id),
+                    ),
+                ],
+              ),
             ],
             _PhotoDiary(photos: plant.photos),
           ],
@@ -133,10 +148,20 @@ class _PlantArt extends StatelessWidget {
   }
 }
 
+/// One daily job. Ticking it is the smallest reward loop in the app, so it
+/// gets the full treatment: magnetic press, a burst from the checkbox, a light
+/// world-knock, and the row itself lifting into a lit "done" state.
 class _MissionTile extends StatefulWidget {
-  const _MissionTile({required this.mission, required this.done, required this.onTap});
+  const _MissionTile({
+    required this.mission,
+    required this.done,
+    required this.onTap,
+    required this.color,
+  });
+
   final Mission mission;
   final bool done;
+  final Color color;
   final VoidCallback onTap;
 
   @override
@@ -144,58 +169,114 @@ class _MissionTile extends StatefulWidget {
 }
 
 class _MissionTileState extends State<_MissionTile> {
-  bool _pressed = false;
+  final _checkKey = GlobalKey();
+
+  void _tap() {
+    final completing = !widget.done;
+    AudioService.instance.play(completing ? Sfx.pop : Sfx.tap);
+    if (completing) {
+      ShakeScope.go(context, intensity: 5, haptic: HapticImpact.medium);
+      FxBurst.atWidget(
+        _checkKey,
+        color: LaarishColors.leaf,
+        style: BurstStyle.pop,
+        intensity: 0.8,
+      );
+    }
+    widget.onTap();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final done = widget.done;
     return Padding(
       padding: const EdgeInsets.only(bottom: LaarishSpacing.sm),
-      child: GestureDetector(
-        onTapDown: (_) => setState(() => _pressed = true),
-        onTapCancel: () => setState(() => _pressed = false),
-        onTapUp: (_) => setState(() => _pressed = false),
-        onTap: () {
-          AudioService.instance.play(widget.done ? Sfx.tap : Sfx.pop);
-          widget.onTap();
-        },
-        child: AnimatedScale(
-          scale: _pressed ? LaarishMotion.tapSquash : 1.0,
-          duration: LaarishMotion.tapDown,
-          curve: Curves.easeOut,
-          child: Container(
-            padding: const EdgeInsets.all(LaarishSpacing.sm),
-            constraints: const BoxConstraints(minHeight: LaarishSpacing.minTapTarget),
-            decoration: BoxDecoration(
-              color: widget.done ? LaarishColors.leaf.withValues(alpha: 0.18) : LaarishColors.paperDeep,
-              borderRadius: BorderRadius.circular(16),
+      child: MagneticTap(
+        onTap: _tap,
+        sfx: null, // played in _tap so it can differ by direction
+        magnetStrength: 4,
+        borderRadius: BorderRadius.circular(16),
+        rippleColor: widget.color.withValues(alpha: 0.45),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.all(LaarishSpacing.sm),
+          constraints: const BoxConstraints(minHeight: LaarishSpacing.minTapTarget),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: done
+                  ? [
+                      LaarishColors.leaf.withValues(alpha: 0.30),
+                      LaarishColors.leaf.withValues(alpha: 0.12),
+                    ]
+                  : [Colors.white, LaarishColors.paperDeep],
             ),
-            child: Row(
-              children: [
-                AnimatedScale(
-                  scale: widget.done ? 1.0 : 0.001,
-                  duration: LaarishMotion.tapUp,
-                  curve: LaarishMotion.enter,
-                  child: const Icon(Icons.check_circle_rounded, color: LaarishColors.leafDeep),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: done
+                  ? LaarishColors.leafDeep.withValues(alpha: 0.45)
+                  : LaarishColors.soil.withValues(alpha: 0.12),
+              width: 1.5,
+            ),
+            boxShadow: DepthShadow.shadows(
+              done ? LaarishColors.leafDeep : LaarishColors.soil,
+              done ? 0.8 : 0.45,
+            ),
+          ),
+          child: Row(
+            children: [
+              // Checkbox swaps with a spring pop, and the pop is what the
+              // particle burst is anchored to.
+              SizedBox(
+                key: _checkKey,
+                width: 26,
+                height: 26,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    AnimatedScale(
+                      scale: done ? 0.001 : 1.0,
+                      duration: LaarishMotion.tapUp,
+                      curve: Curves.easeIn,
+                      child: const Icon(Icons.circle_outlined,
+                          color: LaarishColors.soil, size: 24),
+                    ),
+                    AnimatedScale(
+                      scale: done ? 1.0 : 0.001,
+                      duration: const Duration(milliseconds: 380),
+                      curve: LaarishMotion.overshoot,
+                      child: const Icon(Icons.check_circle_rounded,
+                          color: LaarishColors.leafDeep, size: 26),
+                    ),
+                  ],
                 ),
-                if (!widget.done)
-                  const Icon(Icons.circle_outlined, color: LaarishColors.soil),
-                const SizedBox(width: LaarishSpacing.sm),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.mission.title,
-                        style: LaarishText.body18.copyWith(
-                          decoration: widget.done ? TextDecoration.lineThrough : null,
-                        ),
+              ),
+              const SizedBox(width: LaarishSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 280),
+                      style: LaarishText.body18.copyWith(
+                        decoration: done ? TextDecoration.lineThrough : null,
+                        color: done
+                            ? LaarishColors.leafDeep
+                            : LaarishColors.ink,
                       ),
-                      Text(widget.mission.detail, style: LaarishText.body16.copyWith(color: LaarishColors.soil)),
-                    ],
-                  ),
+                      child: Text(widget.mission.title),
+                    ),
+                    Text(
+                      widget.mission.detail,
+                      style: LaarishText.body16
+                          .copyWith(color: LaarishColors.soil),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -219,9 +300,22 @@ class _PhotoDiary extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 itemCount: photos.length,
                 separatorBuilder: (_, _) => const SizedBox(width: LaarishSpacing.sm),
-                itemBuilder: (_, i) => ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.file(File(photos[i]), width: 64, height: 64, fit: BoxFit.cover),
+                // Each polaroid is a little 3D object that catches the light
+                // as the phone moves.
+                itemBuilder: (_, i) => Tilt3D(
+                  maxTilt: 0.28,
+                  deviceTiltAmount: 0.7,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: DepthShadow.shadows(LaarishColors.soil, 0.7),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(File(photos[i]),
+                          width: 64, height: 64, fit: BoxFit.cover),
+                    ),
+                  ),
                 ),
               ),
             ),

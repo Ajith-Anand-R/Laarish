@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../app/providers.dart';
+import '../../core/fx/fx.dart';
 import '../../core/theme/laarish_colors.dart';
 import '../../core/theme/laarish_spacing.dart';
 import '../../core/theme/laarish_text.dart';
@@ -81,7 +82,32 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
     final save = ref.watch(gameSaveProvider);
     return Scaffold(
       backgroundColor: LaarishColors.paper,
-      body: SafeArea(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Ceremony lighting: a slow gold field with sparkles rising through
+          // it. Deliberately OUTSIDE the RepaintBoundary that gets captured to
+          // PNG, so the saved certificate stays a clean printable document.
+          const RepaintBoundary(
+            child: AnimatedMeshGradient(
+              colors: [
+                LaarishColors.paper,
+                Color(0x44FFC93C),
+                Color(0x2AF5A623),
+                Color(0x1FD93025),
+              ],
+            ),
+          ),
+          const RepaintBoundary(
+            child: ParticleField(
+              color: LaarishColors.sunflower,
+              style: ParticleStyle.sparkle,
+              count: 26,
+              speed: 1.0,
+              opacity: 0.6,
+            ),
+          ),
+          SafeArea(
         child: save.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text('$e')),
@@ -91,9 +117,15 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
               children: [
                 Expanded(
                   child: Center(
-                    child: RepaintBoundary(
-                      key: _captureKey,
-                      child: _Certificate(childName: game.profile.name),
+                    // The certificate is a physical object you can tilt to
+                    // catch the light — the foil-stamp feel.
+                    child: Tilt3D(
+                      maxTilt: 0.16,
+                      deviceTiltAmount: 0.6,
+                      child: RepaintBoundary(
+                        key: _captureKey,
+                        child: _Certificate(childName: game.profile.name),
+                      ),
                     ),
                   ),
                 ),
@@ -111,6 +143,8 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
                     LaarishButton(
                       label: 'Back to Garden',
                       color: LaarishColors.sunflowerDeep,
+                      hero: true,
+                      icon: Icons.local_florist_rounded,
                       onTap: () => context.go('/garden'),
                     ),
                   ],
@@ -119,6 +153,8 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
             ),
           ),
         ),
+          ),
+        ],
       ),
     );
   }

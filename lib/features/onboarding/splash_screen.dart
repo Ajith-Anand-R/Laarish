@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/fx/fx.dart';
 import '../../core/motion/micro_animations.dart';
 import '../../core/theme/laarish_colors.dart';
 
@@ -17,15 +18,32 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c;
+  final _logoKey = GlobalKey();
+  bool _bloomed = false;
 
   @override
   void initState() {
     super.initState();
     _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1600))
+      ..addListener(_watchBloom)
       ..addStatusListener((status) {
         if (status == AnimationStatus.completed && mounted) context.go('/login');
       })
       ..forward();
+  }
+
+  /// The instant the wordmark lands is the app's first impression — fire the
+  /// full payoff there (burst + world knock + haptic), once.
+  void _watchBloom() {
+    if (_bloomed || _c.value < 0.68 || !mounted) return;
+    _bloomed = true;
+    ShakeScope.go(context, intensity: 7, haptic: HapticImpact.medium);
+    FxBurst.atWidget(
+      _logoKey,
+      color: LaarishColors.sunflower,
+      style: BurstStyle.celebrate,
+      intensity: 1.1,
+    );
   }
 
   @override
@@ -40,10 +58,31 @@ class _SplashScreenState extends State<SplashScreen>
       body: Stack(
         fit: StackFit.expand,
         children: [
+          // Living sky behind the scene photo, so even a missing asset gives
+          // a rich animated backdrop.
+          const RepaintBoundary(
+            child: AnimatedMeshGradient(
+              colors: [
+                LaarishColors.skyBottom,
+                Color(0x5AFFC93C),
+                Color(0x4458A83C),
+                Color(0x3387CEEB),
+              ],
+            ),
+          ),
           Image.asset(
             'assets/images/splash_scene.jpg',
             fit: BoxFit.cover,
             errorBuilder: (_, _, _) => const SizedBox.shrink(),
+          ),
+          const RepaintBoundary(
+            child: ParticleField(
+              color: LaarishColors.sunflower,
+              style: ParticleStyle.bokeh,
+              count: 14,
+              speed: 0.6,
+              opacity: 0.35,
+            ),
           ),
           Container(
         decoration: const BoxDecoration(
@@ -81,22 +120,33 @@ class _SplashScreenState extends State<SplashScreen>
                           opacity: logoT.clamp(0.0, 1.0),
                           child: Breathing(
                             amount: 0.025,
-                            child: Container(
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(24),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: LaarishColors.leafDeep.withValues(alpha: 0.25),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 8),
-                                  ),
-                                ],
-                              ),
+                            child: PulseGlow(
+                              color: LaarishColors.sunflower,
+                              radius: 20,
+                              intensity: 0.45,
+                              shape: BoxShape.rectangle,
+                              borderRadius: BorderRadius.circular(24),
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(14),
-                                child: Image.asset('assets/images/logo.png', width: 150, fit: BoxFit.contain),
+                                borderRadius: BorderRadius.circular(24),
+                                child: ShimmerSweep(
+                                  strength: 0.5,
+                                  period: const Duration(milliseconds: 2400),
+                                  child: Container(
+                                    key: _logoKey,
+                                    padding: const EdgeInsets.all(14),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(24),
+                                      boxShadow: DepthShadow.shadows(
+                                          LaarishColors.leafDeep, 1.6),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(14),
+                                      child: Image.asset('assets/images/logo.png',
+                                          width: 150, fit: BoxFit.contain),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
